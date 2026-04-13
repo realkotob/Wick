@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Wick.Providers.GDScript</RootNamespace>
+    <AssemblyName>Wick.Providers.GDScript</AssemblyName>
+    <Description>GDScript tooling provider — parser, LSP client, script generation.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Wick.Core\Wick.Core.csproj" />
+  </ItemGroup>
+
+</Project>

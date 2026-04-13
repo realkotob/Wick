@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Wick.Server</RootNamespace>
+    <AssemblyName>Wick.Server</AssemblyName>
+    <Description>Wick MCP server for Godot Engine — C# and GDScript dual-language support.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <!-- Required by Build.Locator (transitive via CSharp provider): keep MSBuild assemblies out of bin -->
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Wick.Core\Wick.Core.csproj" />
+    <ProjectReference Include="..\Wick.Providers.GDScript\Wick.Providers.GDScript.csproj" />
+    <ProjectReference Include="..\Wick.Providers.CSharp\Wick.Providers.CSharp.csproj" />
+    <ProjectReference Include="..\Wick.Providers.Godot\Wick.Providers.Godot.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,40 @@
+name: Feature Request
+description: Suggest a new tool or capability for Wick
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How should this feature work?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Pillar
+      description: Which tool pillar does this feature belong to?
+      options:
+        - Core (project discovery, GDScript, LSP)
+        - Runtime (game lifecycle, exceptions, editor bridge)
+        - C# (Roslyn analysis, C# LSP)
+        - Build (dotnet CLI, NuGet, diagnostics)
+        - Scene (scene graph CRUD)
+        - Infrastructure / Other
+        - Not sure
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other approaches did you consider?

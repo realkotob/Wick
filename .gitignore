@@ -1,0 +1,57 @@
+## .NET
+bin/
+obj/
+artifacts/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## NuGet
+*.nupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+## IDE
+.vs/
+.vscode/
+*.code-workspace
+.idea/
+*.DotSettings.user
+
+## OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## Test results
+TestResults/
+*.trx
+
+## Build artifacts
+*.log
+
+## Local agent / tooling artifacts (never committed)
+.claude/
+CLAUDE.md
+/docs/superpowers/
+*.tmp
+demo_output.txt
+quick_test.txt
+
+## Scratch build / test / debug output (never committed)
+## These accumulated during the 2026-04 Windows->Linux migration.
+## If you need to capture build output, redirect to /tmp/ or artifacts/
+/build_output.txt
+/build_errors.txt
+/bridge_live_result.txt
+/bridge_test_output.txt
+/obj_all_build.txt
+/obj_all_build2.txt
+/obj_cs_build.txt
+/obj_gdscript_build.txt
+/out.txt
+/test_output.txt
+/lsp_out.txt
+/tests/log.txt
+tests/**/build_error_*.txt

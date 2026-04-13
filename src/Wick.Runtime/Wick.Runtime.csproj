@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Wick.Runtime is the ONE exception to the studio .NET 10 default.
+    It must target net8.0 because Godot 4.6.1 hosts it in-process via the
+    Mono/.NET integration, which is pinned to net8.0.
+    See .agents/rules/dotnet-version-policy.md for the policy.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Wick.Runtime</RootNamespace>
+    <AssemblyName>Wick.Runtime</AssemblyName>
+    <Description>In-process runtime companion for Wick — captures C# exceptions, logs, and live state from a running Godot game.</Description>
+
+    <!-- NuGet package metadata (packing disabled until Phase 4 ships the pipeline) -->
+    <PackageId>Wick.Runtime</PackageId>
+    <Authors>Build Epic Shit Studios</Authors>
+    <PackageTags>godot;mcp;exception-handling;diagnostics</PackageTags>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsPackable>true</IsPackable>
+
+    <!--
+      CA1848 nags us to use LoggerMessage source generators for every Log call.
+      Wick.Runtime is an in-game library with highly variable user log patterns;
+      source-gen ceremony would hurt the ~zero-config UX we want. Suppressed.
+    -->
+    <NoWarn>$(NoWarn);CA1848</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+</Project>

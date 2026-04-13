@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Wick.Providers.Godot</RootNamespace>
+    <AssemblyName>Wick.Providers.Godot</AssemblyName>
+    <Description>Godot Engine tooling provider — editor bridge, scene CRUD, runtime inspection, asset library.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Wick.Core\Wick.Core.csproj" />
+  </ItemGroup>
+
+</Project>
