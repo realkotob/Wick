@@ -9,7 +9,7 @@
 
 ## What is Wick?
 
-Wick is a [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server built natively in C# for Godot Engine. When a Godot C# game crashes, Wick captures the exception from stderr, enriches it with Roslyn-powered source context (calling method body, surrounding lines, caller chain), and exposes the enriched exception stream to AI coding assistants. The agent sees the exception with full source-level context and can fix it in one turn instead of ten.
+Wick is a [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server built natively in C# for Godot Engine. When a Godot C# game crashes, Wick captures the exception from stderr, enriches it with Roslyn-powered source context (calling method body, surrounding lines, caller chain), and exposes the enriched exception stream to AI coding assistants. The agent sees the exception with full source-level context and can fix it in one turn instead of multiple.
 
 ### What makes Wick different?
 
