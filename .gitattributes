@@ -1,0 +1,67 @@
+# Normalize line endings on checkin; check out with LF everywhere.
+# Without this, Windows checkouts silently commit CRLF and the next Linux
+# checkout shows the entire tree as "modified". Learned the hard way during
+# the 2026-04 Windows->Linux migration.
+* text=auto eol=lf
+
+# Source / config - explicit LF
+*.cs        text eol=lf
+*.csproj    text eol=lf
+*.slnx      text eol=lf
+*.sln       text eol=lf
+*.props     text eol=lf
+*.targets   text eol=lf
+*.json      text eol=lf
+*.md        text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.xml       text eol=lf
+*.editorconfig text eol=lf
+*.gitignore text eol=lf
+*.gitattributes text eol=lf
+
+# Godot / GDScript
+*.gd        text eol=lf
+*.tscn      text eol=lf
+*.tres      text eol=lf
+*.godot     text eol=lf
+*.import    text eol=lf
+*.cfg       text eol=lf
+
+# Shell / tooling
+*.sh        text eol=lf
+*.fish      text eol=lf
+
+# Binary assets - never touch
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.webp      binary
+*.ico       binary
+*.svg       text eol=lf
+*.wav       binary
+*.ogg       binary
+*.mp3       binary
+*.flac      binary
+*.ttf       binary
+*.otf       binary
+*.woff      binary
+*.woff2     binary
+*.pck       binary
+*.scn       binary
+*.res       binary
+*.glb       binary
+*.gltf      text eol=lf
+*.fbx       binary
+*.blend     binary
+*.exr       binary
+*.hdr       binary
+*.pdf       binary
+*.zip       binary
+*.tar       binary
+*.gz        binary
+*.7z        binary
+*.dll       binary
+*.exe       binary
+*.pdb       binary

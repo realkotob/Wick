@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Wick.Providers.CSharp</RootNamespace>
+    <AssemblyName>Wick.Providers.CSharp</AssemblyName>
+    <Description>C#/.NET tooling provider — Roslyn analysis, dotnet CLI, test parsing, NuGet management.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
+    <PackageReference Include="Microsoft.Build.Locator" />
+    <!-- Required by Build.Locator: keep MSBuild assemblies out of bin to avoid runtime conflicts -->
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Wick.Core\Wick.Core.csproj" />
+  </ItemGroup>
+
+</Project>

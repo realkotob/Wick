@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Wick.Core/Wick.Core.csproj" />
+    <Project Path="src/Wick.Server/Wick.Server.csproj" />
+    <Project Path="src/Wick.Providers.GDScript/Wick.Providers.GDScript.csproj" />
+    <Project Path="src/Wick.Providers.CSharp/Wick.Providers.CSharp.csproj" />
+    <Project Path="src/Wick.Providers.Godot/Wick.Providers.Godot.csproj" />
+    <Project Path="src/Wick.Runtime/Wick.Runtime.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BridgeConsoleTest/BridgeConsoleTest.csproj" />
+    <Project Path="tests/Wick.Tests.Unit/Wick.Tests.Unit.csproj" />
+    <Project Path="tests/Wick.Tests.Integration/Wick.Tests.Integration.csproj" />
+  </Folder>
+</Solution>

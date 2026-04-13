@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Wick.Tests.Unit</RootNamespace>
+    <AssemblyName>Wick.Tests.Unit</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" />
+    <PackageReference Include="Microsoft.Build.Locator" />
+    <!-- Required by Build.Locator: keep MSBuild assemblies out of bin to avoid runtime conflicts -->
+    <PackageReference Include="Microsoft.Build.Framework" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.StringTools" ExcludeAssets="runtime" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Fixtures/**/*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Fixture .cs files are test resources, not compilable source for this project -->
+    <Compile Remove="Fixtures/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="FluentAssertions" />
+    <Using Include="NSubstitute" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Wick.Core\Wick.Core.csproj" />
+    <ProjectReference Include="..\..\src\Wick.Providers.GDScript\Wick.Providers.GDScript.csproj" />
+    <ProjectReference Include="..\..\src\Wick.Providers.CSharp\Wick.Providers.CSharp.csproj" />
+    <ProjectReference Include="..\..\src\Wick.Providers.Godot\Wick.Providers.Godot.csproj" />
+    <ProjectReference Include="..\..\src\Wick.Runtime\Wick.Runtime.csproj" />
+    <ProjectReference Include="..\..\src\Wick.Server\Wick.Server.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+</Project>

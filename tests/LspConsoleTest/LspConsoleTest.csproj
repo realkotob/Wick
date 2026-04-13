@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Wick.Providers.GDScript\Wick.Providers.GDScript.csproj" />
+    <ProjectReference Include="..\..\src\Wick.Providers.CSharp\Wick.Providers.CSharp.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+</Project>
