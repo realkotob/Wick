@@ -31,13 +31,42 @@ TestResults/
 ## Build artifacts
 *.log
 
-## Local agent / tooling artifacts (never committed)
+## Local orchestration/tooling artifacts (never committed)
+.agents/
 .claude/
+.codex
+.mcp.json
+.mcp.local.json
+AGENTS.md
 CLAUDE.md
+WORKFLOW.md
+.cursor/
+.continue/
+.aider*
+.codeium/
+.windsurf/
+.copilot/
+.junie/
+.zed/
 /docs/superpowers/
 *.tmp
 demo_output.txt
 quick_test.txt
+AGENT-NOTES.md
+SCRATCH.md
+
+## Local environment overrides (never committed)
+.env
+.env.local
+
+## Python venvs occasionally used by tooling (e.g. spec-lint)
+.venv/
+.venv-*/
+__pycache__/
+*.pyc
+*.egg-info/
+.ruff_cache/
+.pytest_cache/
 
 ## Scratch build / test / debug output (never committed)
 ## These accumulated during the 2026-04 Windows->Linux migration.

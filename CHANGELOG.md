@@ -7,8 +7,177 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Phase 2 dogfooding integration work; v1.0-prep items tracked in
-`docs/planning/2026-04-16-phase-3-audit-findings.md`.
+### Added
+
+- **Drift-detection test suite** (`tests/Wick.Tests.Unit/Drift/`) —
+  extends the `DefaultToolGroupsTests` regenerate-from-source pattern
+  to the doc + config surface that the post-v1.0 audit identified as
+  the next drift class. `StatusFileTests` (4 tests) gates STATUS.md
+  frontmatter contract + version-vs-Directory.Build.props match +
+  body doesn't embed test-count tables + body doesn't carry stale
+  `Last updated:` footers. `PluginVersionTests` (1 test) gates
+  `addons/wick/plugin.cfg` version against `Directory.Build.props`.
+  Test count: 240 → 245.
+
+### Changed — honesty-of-surface
+
+- **Phase 2 reframed from "dogfooding" to "public testing"** across
+  STATUS.md, CONTRIBUTING.md, and `docs/planning/2026-04-11-roadmap-to-public-launch.md`.
+  The original plan named Floom (an F# CLI, not a Godot project) and
+  UsefulIdiots (currently doc-only after a fresh re-init) as dogfood
+  targets — neither is a valid Wick target. Public testing routes Wick
+  at any real Godot C# codebase. First pass landed: see
+  `docs/public-testing/2026-04-15-bes-splash-3d-pass.md` (BES Studios
+  splash logo, 13 verified Wick tool calls over a multi-day public-test
+  pass, runtime + build pillars exercised, 6 honest findings
+  including that `runtime_diagnose` was never reached for in real use).
+- **v0.6 roadmap → v1.x hardening** in SECURITY.md and CHANGELOG. The
+  GDScript-side editor + runtime bridge auth (ports 6505 / 7777) is
+  reframed as v1.x post-release hardening rather than "deferred from
+  v1.0" — same posture every other Godot MCP server in the category
+  ships with at v1.0; the in-process bridge ships authenticated.
+- **Public documentation scrub** removes internal evidence paths and
+  session-provenance details from planning/status docs while preserving the
+  public release, audit, and testing facts.
+
+### Changed — maintenance
+
+- Coordinated the `Microsoft.Extensions.*` central package versions at
+  `10.0.7` to avoid partial Dependabot bumps producing restore downgrade
+  failures.
+- Updated GitHub artifact actions used by CI/release workflows:
+  `actions/upload-artifact` to `v7` and `actions/download-artifact` to `v8`.
+
+### Pending
+
+- Second public-test pass against a NuGet-installed `Wick.Runtime`
+  target to exercise the in-process Tier 2 bridge and the `csharp`
+  pillar (the bes-splash-3d pass on 2026-04-15 covered runtime + build
+  pillars only). Candidate: the official Godot Dodge the Creeps C#
+  tutorial project.
+- Discoverability fixes from the bes-splash-3d pass — `runtime_diagnose`
+  description rewrite (P1) and in-process bridge nudge in
+  `runtime_status` (P2).
+- GDScript-side editor + runtime bridge auth (v1.x hardening).
+
+## [1.0.0] — 2026-04-19
+
+First stable release. Resolves the post-v0.5 external engineering
+audit: 1 P0 + every P1 + most P2/P3 closed; 240/240 tests green on
+ubuntu/windows/macos; 0 warnings; first NuGet publication of
+`Wick.Runtime`.
+
+### Added
+
+- `.github/workflows/release.yml` — tag-driven NuGet release pipeline.
+  Pushing a `vX.Y.Z` tag matching the `<Version>` in `Directory.Build.props`
+  runs build + test + pack and publishes `Wick.Runtime` to nuget.org when
+  `NUGET_API_KEY` is configured. Without the secret, the `.nupkg` is uploaded
+  as a workflow artifact for manual push. Tag-vs-version mismatch fails the
+  job loudly. `.snupkg` symbols ship alongside.
+- `src/Wick.Runtime/README.md` — embedded as the NuGet package README.
+- `.env.example` — documents `WICK_GROUPS` / `WICK_GODOT_BIN` / `WICK_PROJECT_PATH`
+  with OS-specific Godot binary path examples.
+- `docs/README.md` — narrative routing index for the `docs/` tree.
+- `SceneContextParser` (`Wick.Providers.Godot`) — static parser for the
+  `editor_scene_tree` JSON shape, extracted as a unit-testable helper.
+- `WickBridgeErrorCode.Unknown` arm — distinguishes forward-compat
+  protocol drift from genuine server-internal errors.
+- `IGameLauncher.ProbeGodotBinary()` — pure-inspection cross-platform
+  binary resolution (handles `PATHEXT` on Windows).
+
+### Fixed
+
+- `GodotBridgeManager.GetSceneContext()` was hardcoded to return null,
+  making the headline demo's `"scene": { ... }` block unsupported on
+  every real game. Now async, queries `editor_scene_tree` with a 1.5s
+  bounded timeout, parses scene path + recursive node count via the new
+  `SceneContextParser`. `IGodotBridgeManagerAccessor.GetSceneContext` →
+  `GetSceneContextAsync(ct)` (interface change). Failure paths (timeout,
+  disconnect, malformed JSON) all yield `null` so the enrichment pipeline
+  never blocks on a stuck editor.
+- `runtime_launch_game` previously returned `Status: "running"` with no
+  `Error` even when `WICK_GODOT_BIN` was unset or pointed at a missing
+  binary; the launched process exited immediately, no exceptions were
+  captured, and a subsequent `runtime_diagnose` returned
+  `HasIssues: false`. The user concluded their game was healthy when
+  nothing ever ran. Now: `runtime_launch_game` pre-flights the binary
+  and returns `Status: "godot_binary_not_found"` with an actionable
+  `Error`. `runtime_status` surfaces `GodotBinaryConfigured` /
+  `GodotBinaryResolved` / `GodotBinaryFound` / `GodotBinaryError` for
+  client-side preflight.
+- `WickBridgeErrorCodeParsing.Parse` collapsed unknown wire codes into
+  `Internal`, making forward-compat drift indistinguishable from genuine
+  server failures in logs / triage. Now maps unknown codes to `Unknown`.
+
+### Changed — honesty-of-surface
+
+- `docs/tools-reference.md` — fully regenerated from
+  `src/Wick.Core/DefaultToolGroups.cs`. Every tool name now matches the
+  wire (`tool_catalog`/`tool_groups`/`tool_reset`, `runtime_launch_game`,
+  `c_sharp_*`, `dot_net_*`, `nu_get_*`, `editor_status`,
+  `runtime_query_scene_tree`, etc.). Header documents the snake_case
+  auto-conversion rule and the `DefaultToolGroupsTests` drift gate.
+- `docs/getting-started.md` — `WickRuntime.Initialize()` → `Install()`,
+  added the missing `_Process(double delta) => Tick()` callout that the
+  API actually requires. Demoted `dotnet add package Wick.Runtime` to a
+  pre-release `dotnet add reference` path until the package ships.
+- `docs/architecture.md` and `CONTRIBUTING.md` — dropped hard-coded test
+  counts; route to `STATUS.md` frontmatter (`tests.total`) for live
+  numbers. Body table also removed from `STATUS.md` so frontmatter is
+  the unambiguous source of truth — same regenerate-from-source pattern
+  the audit applied to the tools catalog.
+- `addons/wick/plugin.cfg` — version pinned to `1.0.0` to match
+  `Directory.Build.props` `<Version>` (re-synced after the v1.0 bump);
+  description points back at the .NET server URL.
+- `SECURITY.md` — added an explicit Threat Model section enumerating
+  in-scope vs out-of-scope so vulnerability reporters know whether to
+  file. Notably acknowledges the unauthenticated localhost JSON-RPC
+  bridges as a deliberate v1 trust-boundary choice (developer UID is the
+  trust boundary) with full bridge auth on the v1.x hardening roadmap.
+
+### Security
+
+- **In-process bridge auth.** `Wick.Runtime.Bridge.WickBridgeServer`
+  (loopback `127.0.0.1:7878`) now requires a shared-secret `auth` field
+  on every JSON-RPC request. The MCP server generates a 256-bit
+  cryptographic token at startup, passes it to the spawned Godot
+  subprocess via the `WICK_BRIDGE_TOKEN` environment variable, and
+  configures `InProcessBridgeClientFactory` to send the matching value
+  on every outgoing call. Constant-time comparison defeats per-byte
+  timing fingerprinting. Set `WICK_BRIDGE_AUTH_DISABLED=1` to opt out
+  during migration. Loopback binding alone was insufficient against
+  other local processes running as the same UID; the shared secret
+  upgrades the threat model to "anyone with the token". Editor + runtime
+  bridges (GDScript-served, ports 6505 / 7777) remain unauthenticated
+  in v1.0 — same posture every other Godot MCP server in the category
+  ships with at v1.0 — and are on the v1.x hardening roadmap. See
+  SECURITY.md threat model "Out of scope #1" for the detail.
+- `HeaderDelimitedRpcClient`: verbose StreamJsonRpc tracing now defaults
+  off; gated behind `WICK_RPC_TRACE` env var. Previously every JSON-RPC
+  frame including `textDocument/didOpen` payloads with full file
+  contents was unconditionally written to stderr (privacy leak vector
+  with no opt-out).
+- `CSharpLspClient` + `GodotDapClient`: capped `Content-Length` at 16
+  MiB to defend against the OOM-by-peer attack chain (peer-redirected
+  handshake → unbounded buffer alloc).
+
+### CI / hygiene
+
+- Cross-OS CI matrix (`ubuntu-latest`, `windows-latest`, `macos-latest`)
+  with NuGet caching and TRX artifact upload (14-day retention).
+- `.gitignore` covers `.cursor/`, `.continue/`, `.aider*`, `.codeium/`,
+  `.windsurf/`, `.copilot/`, `.junie/`, `.zed/`, `AGENT-NOTES.md`,
+  `SCRATCH.md`, `.env`/`.env.local`, plus a Python venv block.
+- `nuget.config` carries an explanatory comment for the deliberate
+  `<clear/>` (supply-chain hardening choice).
+
+### Removed
+
+- `Wick.sln` — legacy solution file that only registered 2 of 6 source
+  projects. Modern `.slnx` is canonical everywhere (CI, CONTRIBUTING,
+  getting-started); the legacy `.sln` was a foot-gun for any tool that
+  prefers `.sln` over `.slnx`.
 
 ## [0.5.0] — 2026-04-16
 
@@ -73,7 +242,7 @@ Phase 1 feature completeness. All six sub-specs shipped. 215 tests passing.
 
 - Sub-spec A — Runtime exception pipeline: GodotExceptionParser (stderr-based), ExceptionEnricher
   (Roslyn source mapping), ExceptionPipeline (IHostedService), BridgeExceptionSource (TCP bridge
-  channel), ProcessExceptionSource (Tier 1 agent-launched stderr capture), thread-safe
+  channel), ProcessExceptionSource (Tier 1 Wick-launched stderr capture), thread-safe
   ExceptionBuffer and LogBuffer ring buffers (PRs #19–#24)
 - Sub-spec B — Static tool group system: 5-pillar model (editor, scene, csharp, runtime, build),
   ToolGroupResolver with CLI/env precedence, 5 runtime MCP tools (status, get_log_tail,
@@ -92,7 +261,7 @@ Phase 1 feature completeness. All six sub-specs shipped. 215 tests passing.
 ### Changed
 
 - Renamed SharpPeak to Wick across all namespaces, package IDs, env vars, and docs (PR #26)
-- Descoped scene pillar from 28 to 7 tools (strategic focus on what agents actually need)
+- Descoped scene pillar from 28 to 7 tools (strategic focus on what AI coding assistants actually need)
 - Reshaped DefaultToolGroups into 5-pillar model; split CSharpTools into CSharpAnalysisTools +
   BuildTools
 - Deleted dead ToolGroupRegistry after static group refactor
@@ -130,7 +299,7 @@ Foundation stabilization, Linux migration recovery, test infrastructure overhaul
   invocation tests, SharpPeakServerFixture (PR #17)
 - SharpPeak.Tests.Integration project scaffold
 - Initial STATUS.md with YAML frontmatter (PR #12)
-- AGENTS.md as canonical cross-framework operating manual (PR #15)
+- Public contributor workflow and engineering standards documentation (PR #15)
 
 ### Changed
 

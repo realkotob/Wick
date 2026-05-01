@@ -49,13 +49,21 @@ public enum WickBridgeErrorCode
     [JsonStringEnumMemberName("connection_refused")] ConnectionRefused,
     [JsonStringEnumMemberName("timeout")] Timeout,
     [JsonStringEnumMemberName("internal")] Internal,
+    /// <summary>
+    /// Wire-format error code that this client does not recognize. Surfaced separately
+    /// from <see cref="Internal"/> so a forward-compat protocol drift (e.g. a future
+    /// GDScript-side <c>permission_denied</c>) is visible in logs / triage rather than
+    /// silently mislabeled as a server-internal failure.
+    /// </summary>
+    [JsonStringEnumMemberName("unknown")] Unknown,
 }
 
 internal static class WickBridgeErrorCodeParsing
 {
     /// <summary>
     /// Parses a wire-format error code string into the enum. Unknown codes map to
-    /// <see cref="WickBridgeErrorCode.Internal"/> so the pipeline always yields a value.
+    /// <see cref="WickBridgeErrorCode.Unknown"/> so a forward-compat wire-protocol
+    /// drift is distinguishable from a genuine server-internal error.
     /// </summary>
     public static WickBridgeErrorCode Parse(string? wireValue) => wireValue switch
     {
@@ -67,7 +75,8 @@ internal static class WickBridgeErrorCodeParsing
         "invalid_params" => WickBridgeErrorCode.InvalidParams,
         "connection_refused" => WickBridgeErrorCode.ConnectionRefused,
         "timeout" => WickBridgeErrorCode.Timeout,
-        _ => WickBridgeErrorCode.Internal,
+        "internal" => WickBridgeErrorCode.Internal,
+        _ => WickBridgeErrorCode.Unknown,
     };
 }
 
@@ -83,12 +92,14 @@ public sealed class InProcessBridgeClient : IInProcessBridgeClient
     private readonly string _host;
     private readonly int _port;
     private readonly TimeSpan _timeout;
+    private readonly string? _authToken;
 
-    public InProcessBridgeClient(int port, string host = "127.0.0.1", TimeSpan? timeout = null)
+    public InProcessBridgeClient(int port, string host = "127.0.0.1", TimeSpan? timeout = null, string? authToken = null)
     {
         _host = host;
         _port = port;
         _timeout = timeout ?? DefaultTimeout;
+        _authToken = string.IsNullOrEmpty(authToken) ? null : authToken;
     }
 
     public int Port => _port;
@@ -148,6 +159,10 @@ public sealed class InProcessBridgeClient : IInProcessBridgeClient
                     ["method"] = method,
                     ["params"] = @params,
                 };
+                if (_authToken is not null)
+                {
+                    request["auth"] = _authToken;
+                }
                 var reqLine = JsonSerializer.Serialize(request) + "\n";
                 var bytes = Encoding.UTF8.GetBytes(reqLine);
                 await stream.WriteAsync(bytes, timeoutCts.Token).ConfigureAwait(false);
@@ -211,17 +226,33 @@ public sealed class InProcessBridgeClientFactory
 {
     private readonly object _lock = new();
     private IInProcessBridgeClient? _current;
+    private string? _authToken;
 
     public IInProcessBridgeClient? Current
     {
         get { lock (_lock) { return _current; } }
     }
 
+    /// <summary>
+    /// Configures the shared-secret token that newly-installed bridge clients
+    /// send on every request. The MCP server must call this once at startup
+    /// with the same token it propagated to the spawned game via
+    /// <c>WICK_BRIDGE_TOKEN</c>; otherwise the bridge will reject every call
+    /// with <c>unauthorized</c>.
+    /// </summary>
+    public void ConfigureAuthToken(string? token)
+    {
+        lock (_lock)
+        {
+            _authToken = string.IsNullOrEmpty(token) ? null : token;
+        }
+    }
+
     public void InstallFromHandshake(int port)
     {
         lock (_lock)
         {
-            _current = new InProcessBridgeClient(port);
+            _current = new InProcessBridgeClient(port, authToken: _authToken);
         }
     }
 
