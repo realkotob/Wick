@@ -54,8 +54,11 @@ This document explains how Wick is designed and why key decisions were made.
 
 Wick runs as a **standalone .NET process**, not inside Godot. This means:
 - Full access to .NET 10, Roslyn, and modern C# tooling
-- No Godot runtime constraints (e.g., the `net8.0` limitation for Godot C# assemblies)
+- No Godot runtime constraints for the server/provider process
 - Independent lifecycle — Wick can outlive a crashed game
+
+The optional `Wick.Runtime` companion is different: it is loaded by the Godot
+game process and targets `net8.0` to match Godot's current stable .NET runtime.
 
 Communication with Godot happens over TCP JSON-RPC via the bridge plugin.
 
@@ -102,8 +105,8 @@ src/
 └── Wick.Runtime/        # In-process NuGet companion (targets net8.0 for Godot)
 
 tests/
-├── Wick.Tests.Unit/         # 203 unit tests
-└── Wick.Tests.Integration/  # 12 integration tests (real MCP server)
+├── Wick.Tests.Unit/         # unit tests (count tracked in STATUS.md)
+└── Wick.Tests.Integration/  # integration tests (real MCP server, count tracked in STATUS.md)
 
 addons/wick/    # GDScript editor plugin
 ```

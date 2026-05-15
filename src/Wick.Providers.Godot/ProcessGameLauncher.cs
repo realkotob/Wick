@@ -18,6 +18,7 @@ public sealed partial class ProcessGameLauncher : IGameLauncher
     private readonly ExceptionEnricher _enricher;
     private readonly ILogger<ProcessGameLauncher> _logger;
     private readonly InProcessBridgeClientFactory? _bridgeFactory;
+    private readonly string? _bridgeAuthToken;
 
     public ProcessGameLauncher(
         string godotBinaryPath,
@@ -26,7 +27,8 @@ public sealed partial class ProcessGameLauncher : IGameLauncher
         LogBuffer logBuffer,
         ExceptionEnricher enricher,
         ILogger<ProcessGameLauncher> logger,
-        InProcessBridgeClientFactory? bridgeFactory = null)
+        InProcessBridgeClientFactory? bridgeFactory = null,
+        string? bridgeAuthToken = null)
     {
         _godotBinaryPath = godotBinaryPath;
         _projectPath = projectPath;
@@ -35,6 +37,7 @@ public sealed partial class ProcessGameLauncher : IGameLauncher
         _enricher = enricher;
         _logger = logger;
         _bridgeFactory = bridgeFactory;
+        _bridgeAuthToken = string.IsNullOrEmpty(bridgeAuthToken) ? null : bridgeAuthToken;
     }
 
     [LoggerMessage(EventId = 100, Level = LogLevel.Warning,
@@ -44,6 +47,77 @@ public sealed partial class ProcessGameLauncher : IGameLauncher
     [LoggerMessage(EventId = 101, Level = LogLevel.Warning,
         Message = "Error while stopping game process")]
     private partial void LogStopError(Exception ex);
+
+    /// <inheritdoc />
+    public GodotBinaryProbe ProbeGodotBinary()
+    {
+        var configured = _godotBinaryPath;
+
+        if (string.IsNullOrWhiteSpace(configured))
+        {
+            return new GodotBinaryProbe(
+                Configured: configured ?? string.Empty,
+                Resolved: null,
+                Found: false,
+                Error: "WICK_GODOT_BIN is unset and no fallback was configured.");
+        }
+
+        // If the configured path looks like an absolute or relative file path
+        // (contains a separator), check the filesystem directly.
+        if (configured.IndexOfAny([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]) >= 0)
+        {
+            var full = Path.GetFullPath(configured);
+            if (File.Exists(full))
+            {
+                return new GodotBinaryProbe(configured, full, true, null);
+            }
+            return new GodotBinaryProbe(
+                Configured: configured,
+                Resolved: null,
+                Found: false,
+                Error: $"WICK_GODOT_BIN points to '{configured}' but no file exists at '{full}'.");
+        }
+
+        // Bare name (e.g. "godot") — walk PATH.
+        var resolved = ResolveOnPath(configured);
+        if (resolved is not null)
+        {
+            return new GodotBinaryProbe(configured, resolved, true, null);
+        }
+
+        var unsetHint = string.Equals(configured, "godot", StringComparison.Ordinal)
+            ? " (WICK_GODOT_BIN appears unset; using the default 'godot' fallback)"
+            : string.Empty;
+        return new GodotBinaryProbe(
+            Configured: configured,
+            Resolved: null,
+            Found: false,
+            Error: $"'{configured}' was not found on PATH{unsetHint}. Set WICK_GODOT_BIN to the absolute path of your Godot mono/.NET binary.");
+    }
+
+    private static string? ResolveOnPath(string name)
+    {
+        var path = Environment.GetEnvironmentVariable("PATH");
+        if (string.IsNullOrEmpty(path)) return null;
+
+        var isWindows = OperatingSystem.IsWindows();
+        var separator = isWindows ? ';' : ':';
+        var extensions = isWindows
+            ? (Environment.GetEnvironmentVariable("PATHEXT") ?? ".EXE;.CMD;.BAT;.COM").Split(';', StringSplitOptions.RemoveEmptyEntries)
+            : [string.Empty];
+
+        foreach (var dir in path.Split(separator, StringSplitOptions.RemoveEmptyEntries))
+        {
+            foreach (var ext in extensions)
+            {
+                var trimmedDir = dir.Trim().Trim('"');
+                if (trimmedDir.Length == 0) continue;
+                var candidate = Path.Combine(trimmedDir, name + ext);
+                if (File.Exists(candidate)) return candidate;
+            }
+        }
+        return null;
+    }
 
     public LaunchedGame Launch(string? scene, bool headless, IReadOnlyList<string> extraArgs)
     {
@@ -58,6 +132,14 @@ public sealed partial class ProcessGameLauncher : IGameLauncher
             UseShellExecute = false,
             CreateNoWindow = true,
         };
+        // Propagate the bridge auth token to the spawned Godot process so its
+        // optional Wick.Runtime companion can configure WickBridgeServer with
+        // the matching shared secret. Without this the in-process bridge would
+        // reject every InProcessBridgeClient request as `unauthorized`.
+        if (_bridgeAuthToken is not null)
+        {
+            startInfo.Environment["WICK_BRIDGE_TOKEN"] = _bridgeAuthToken;
+        }
         if (headless) startInfo.ArgumentList.Add("--headless");
         startInfo.ArgumentList.Add("--path");
         startInfo.ArgumentList.Add(_projectPath);
